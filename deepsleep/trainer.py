@@ -129,6 +129,8 @@ class DeepFeatureNetTrainer(Trainer):
     def __init__(
         self, 
         data_dir, 
+        train_dir,
+        val_dir,
         output_dir, 
         n_folds, 
         fold_idx, 
@@ -146,6 +148,8 @@ class DeepFeatureNetTrainer(Trainer):
         )
 
         self.data_dir = data_dir
+        self.train_dir = train_dir
+        self.val_dir = val_dir
         self.output_dir = output_dir
         self.n_folds = n_folds
         self.fold_idx = fold_idx
@@ -303,6 +307,8 @@ class DeepFeatureNetTrainer(Trainer):
             if sess.run(global_step) < n_epochs:
                 data_loader = NonSeqDataLoader(
                     data_dir=self.data_dir, 
+                    train_dir=self.train_dir,
+                    val_dir=self.val_dir,
                     n_folds=self.n_folds, 
                     fold_idx=self.fold_idx
                 )
@@ -447,6 +453,8 @@ class DeepSleepNetTrainer(Trainer):
     def __init__(
         self, 
         data_dir, 
+        train_dir,
+        val_dir,
         output_dir, 
         n_folds, 
         fold_idx, 
@@ -467,6 +475,8 @@ class DeepSleepNetTrainer(Trainer):
         )
 
         self.data_dir = data_dir
+        self.train_dir = train_dir
+        self.val_dir = val_dir
         self.output_dir = output_dir
         self.n_folds = n_folds
         self.fold_idx = fold_idx
@@ -688,6 +698,8 @@ class DeepSleepNetTrainer(Trainer):
             if sess.run(global_step) < n_epochs:
                 data_loader = SeqDataLoader(
                     data_dir=self.data_dir, 
+                    train_dir = self.train_dir,
+                    val_dir = self.val_dir,
                     n_folds=self.n_folds, 
                     fold_idx=self.fold_idx
                 )

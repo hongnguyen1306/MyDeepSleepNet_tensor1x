@@ -30,8 +30,8 @@ def tal(tal_str):
     '(?:\x14\x00)'
 
   def annotation_to_list(annotation):
-    #return str(annotation, 'utf-8').split('\x14') if annotation else []
-    return annotation.split('\x14') if annotation else []
+    return str(annotation, 'utf-8').split('\x14') if annotation else []
+    # return annotation.split('\x14') if annotation else []
 
   def parse(dic):
     return (
@@ -93,7 +93,7 @@ class BaseEDFReader:
 
     # calculate ranges for rescaling
     self.dig_min = h['digital_min']
-    self.phys_min = h['physical_min']
+    self.phys_min = h['physical_min'] 
     phys_range = h['physical_max'] - h['physical_min']
     dig_range = h['digital_max'] - h['digital_min']
     assert np.all(phys_range > 0)

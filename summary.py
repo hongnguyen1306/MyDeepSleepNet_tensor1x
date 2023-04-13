@@ -85,7 +85,7 @@ def perf_overall(data_dir):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="/home/akara/Workspace/deepsleep_output/results/outputs",
+    parser.add_argument("--data_dir", type=str, default="./output",
                         help="Directory where to load prediction outputs")
     args = parser.parse_args()
 

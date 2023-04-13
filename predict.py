@@ -29,9 +29,9 @@ FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('data_dir', 'data',
                            """Directory where to load training data.""")
-tf.app.flags.DEFINE_string('model_dir', 'output',
+tf.app.flags.DEFINE_string('model_dir', '/output',
                            """Directory where to load trained models.""")
-tf.app.flags.DEFINE_string('output_dir', 'output',
+tf.app.flags.DEFINE_string('output_dir', '/output',
                            """Directory where to save outputs.""")
 
 
@@ -572,10 +572,12 @@ def custom_run_epoch(
         "y_true": y_true,
         "y_pred": y
     }
+    print('====================  save_dict ', save_dict)
     save_path = os.path.join(
         output_dir,
         "output_subject{}.npz".format(subject_idx)
     )
+    print('====================  save_path ', save_path)
     np.savez(save_path, **save_dict)
     print("Saved outputs to {}".format(save_path))
 

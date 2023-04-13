@@ -4,8 +4,12 @@ import math
 import ntpath
 import os
 import shutil
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.parse
+import urllib.error
+import urllib.request
+import urllib.error
+import urllib.parse
 
 from datetime import datetime
 
@@ -59,9 +63,9 @@ EPOCH_SEC_SIZE = 30
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir", type=str, default="/data/physionet_sleep",
+    parser.add_argument("--data_dir", type=str, default="data/physionet_sleep/train",
                         help="File path to the CSV or NPY file that contains walking data.")
-    parser.add_argument("--output_dir", type=str, default="/data/physionet_sleep/eeg_fpz_cz",
+    parser.add_argument("--output_dir", type=str, default="data/physionet_sleep/train",
                         help="Directory where to save outputs.")
     parser.add_argument("--select_ch", type=str, default="EEG Fpz-Cz",
                         help="File path to the trained model used to estimate walking speeds.")
@@ -101,7 +105,8 @@ def main():
         reader_raw.read_header()
         h_raw = reader_raw.header
         f.close()
-        raw_start_dt = datetime.strptime(h_raw['date_time'], "%Y-%m-%d %H:%M:%S")
+        raw_start_dt = datetime.strptime(
+            h_raw['date_time'], "%Y-%m-%d %H:%M:%S")
 
         # Read annotation and its header
         f = open(ann_fnames[i], 'r', encoding='iso-8859-1')
@@ -110,7 +115,8 @@ def main():
         h_ann = reader_ann.header
         _, _, ann = list(zip(*reader_ann.records()))
         f.close()
-        ann_start_dt = datetime.strptime(h_ann['date_time'], "%Y-%m-%d %H:%M:%S")
+        ann_start_dt = datetime.strptime(
+            h_ann['date_time'], "%Y-%m-%d %H:%M:%S")
 
         # Assert that raw and annotation files start at the same time
         assert raw_start_dt == ann_start_dt
@@ -129,22 +135,25 @@ def main():
                 duration_epoch = int(duration_sec / EPOCH_SEC_SIZE)
                 label_epoch = np.ones(duration_epoch, dtype=np.int) * label
                 labels.append(label_epoch)
-                idx = int(onset_sec * sampling_rate) + np.arange(duration_sec * sampling_rate, dtype=np.int)
+                idx = int(onset_sec * sampling_rate) + \
+                    np.arange(duration_sec * sampling_rate, dtype=np.int)
                 label_idx.append(idx)
 
                 print("Include onset:{}, duration:{}, label:{} ({})".format(
                     onset_sec, duration_sec, label, ann_str
                 ))
             else:
-                idx = int(onset_sec * sampling_rate) + np.arange(duration_sec * sampling_rate, dtype=np.int)
+                idx = int(onset_sec * sampling_rate) + \
+                    np.arange(duration_sec * sampling_rate, dtype=np.int)
                 remove_idx.append(idx)
 
                 print("Remove onset:{}, duration:{}, label:{} ({})".format(
                     onset_sec, duration_sec, label, ann_str
                 ))
         labels = np.hstack(labels)
-        
-        print("before remove unwanted: {}".format(np.arange(len(raw_ch_df)).shape))
+
+        print("before remove unwanted: {}".format(
+            np.arange(len(raw_ch_df)).shape))
         if len(remove_idx) > 0:
             remove_idx = np.hstack(remove_idx)
             select_idx = np.setdiff1d(np.arange(len(raw_ch_df)), remove_idx)
@@ -160,15 +169,18 @@ def main():
 
         # Remove extra index
         if len(label_idx) > len(select_idx):
-            print("before remove extra labels: {}, {}".format(select_idx.shape, labels.shape))
+            print("before remove extra labels: {}, {}".format(
+                select_idx.shape, labels.shape))
             extra_idx = np.setdiff1d(label_idx, select_idx)
             # Trim the tail
             if np.all(extra_idx > select_idx[-1]):
                 n_trims = len(select_idx) % int(EPOCH_SEC_SIZE * sampling_rate)
-                n_label_trims = int(math.ceil(n_trims / (EPOCH_SEC_SIZE * sampling_rate)))
+                n_label_trims = int(
+                    math.ceil(n_trims / (EPOCH_SEC_SIZE * sampling_rate)))
                 select_idx = select_idx[:-n_trims]
                 labels = labels[:-n_label_trims]
-            print("after remove extra labels: {}, {}".format(select_idx.shape, labels.shape))
+            print("after remove extra labels: {}, {}".format(
+                select_idx.shape, labels.shape))
 
         # Remove movement and unknown stages if any
         raw_ch = raw_ch_df.values[select_idx]
@@ -189,8 +201,10 @@ def main():
         nw_idx = np.where(y != stage_dict["W"])[0]
         start_idx = nw_idx[0] - (w_edge_mins * 2)
         end_idx = nw_idx[-1] + (w_edge_mins * 2)
-        if start_idx < 0: start_idx = 0
-        if end_idx >= len(y): end_idx = len(y) - 1
+        if start_idx < 0:
+            start_idx = 0
+        if end_idx >= len(y):
+            end_idx = len(y) - 1
         select_idx = np.arange(start_idx, end_idx+1)
         print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
@@ -200,8 +214,8 @@ def main():
         # Save
         filename = ntpath.basename(psg_fnames[i]).replace("-PSG.edf", ".npz")
         save_dict = {
-            "x": x, 
-            "y": y, 
+            "x": x,
+            "y": y,
             "fs": sampling_rate,
             "ch_label": select_ch,
             "header_raw": h_raw,

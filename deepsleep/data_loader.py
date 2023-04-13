@@ -10,8 +10,10 @@ import re
 
 class NonSeqDataLoader(object):
 
-    def __init__(self, data_dir, n_folds, fold_idx):
+    def __init__(self, data_dir, train_dir, val_dir, n_folds, fold_idx):
         self.data_dir = data_dir
+        self.train_dir = train_dir
+        self.val_dir = val_dir
         self.n_folds = n_folds
         self.fold_idx = fold_idx
 
@@ -49,7 +51,7 @@ class NonSeqDataLoader(object):
 
         # Load a npz file
         print("Load training set:")
-        data_train, label_train = self._load_npz_list_files(train_files)
+        data_train, label_train =   (train_files)
         print(" ")
         print("Load validation set:")
         data_val, label_val = self._load_npz_list_files(val_files[self.fold_idx])
@@ -71,37 +73,54 @@ class NonSeqDataLoader(object):
 
     def load_train_data(self, n_files=None):
         # Remove non-mat files, and perform ascending sort
+        print("====== data_dir, train_dir, val_dir =======\n")
+        print(self.data_dir)
+        print(self.train_dir)
+        print(self.val_dir)
+
         allfiles = os.listdir(self.data_dir)
-        npzfiles = []
-        for idx, f in enumerate(allfiles):
+        all_train_files = os.listdir(self.train_dir)
+        all_val_files = os.listdir(self.val_dir)
+        print("====== allfiles ======\n", allfiles)
+        print("====== all_train_files ======\n", all_train_files)
+        print("====== all_val_files ======\n", all_val_files)
+
+        npzfiles = [f for f in os.listdir(self.train_dir) if f.endswith('.npz')]
+        print("====== npzfiles =======\n", npzfiles)
+        npz_files = []
+        for idx, f in enumerate(npzfiles):
             if ".npz" in f:
-                npzfiles.append(os.path.join(self.data_dir, f))
-        npzfiles.sort()
+                npz_files.append(os.path.join(self.train_dir, f))
+        # Sắp xếp danh sách tệp npz
+        npz_files.sort()
 
+        print("====== npz_files =======\n", npz_files)
+
+        # Nếu chỉ định n_files, thì chỉ lấy n_files tệp npz
         if n_files is not None:
-            npzfiles = npzfiles[:n_files]
+            npz_files = npz_files[:n_files]
 
-        subject_files = []
-        for idx, f in enumerate(allfiles):
-            if self.fold_idx < 10:
-                pattern = re.compile("[a-zA-Z0-9]*0{}[1-9]E0\.npz$".format(self.fold_idx))
-            else:
-                pattern = re.compile("[a-zA-Z0-9]*{}[1-9]E0\.npz$".format(self.fold_idx))
-            if pattern.match(f):
-                subject_files.append(os.path.join(self.data_dir, f))
+        print("npz_files\n", npz_files)
 
-        if len(subject_files) == 0:
-            for idx, f in enumerate(allfiles):
-                if self.fold_idx < 10:
-                    pattern = re.compile("[a-zA-Z0-9]*0{}[1-9]J0\.npz$".format(self.fold_idx))
-                else:
-                    pattern = re.compile("[a-zA-Z0-9]*{}[1-9]J0\.npz$".format(self.fold_idx))
-                if pattern.match(f):
-                    subject_files.append(os.path.join(self.data_dir, f))
+        # Tạo danh sách các tệp npz trong thư mục validation
+        val_files = [f for f in os.listdir(self.val_dir) if f.endswith('.npz')]
+        print("val_files\n", val_files)
 
-        train_files = list(set(npzfiles) - set(subject_files))
-        train_files.sort()
+        if self.fold_idx < 10:
+            pattern1 = re.compile("[a-zA-Z0-9]*0{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+            pattern2 = re.compile("[a-zA-Z0-9]*{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+        else:
+            pattern1 = re.compile("[a-zA-Z0-9]*{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+            pattern2 = re.compile("[a-zA-Z0-9]*{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+
+        subject_files = [os.path.join(self.val_dir, f) for f in val_files if pattern1.match(f) or pattern2.match(f)]
         subject_files.sort()
+
+        print("subject_files\n", subject_files)
+
+        train_files = list(set(npz_files) - set(subject_files))
+        train_files.sort()
+
 
         # Load training and validation sets
         print("\n========== [Fold-{}] ==========\n".format(self.fold_idx))
@@ -113,6 +132,10 @@ class NonSeqDataLoader(object):
         print(" ")
 
         # Reshape the data to match the input of the model - conv2d
+
+        # Check the shape of data_train
+        print("data_train.shape\n", data_train.shape)
+
         data_train = np.squeeze(data_train)
         data_val = np.squeeze(data_val)
         data_train = data_train[:, :, np.newaxis, np.newaxis]
@@ -180,10 +203,12 @@ class NonSeqDataLoader(object):
 
 class SeqDataLoader(object):
 
-    def __init__(self, data_dir, n_folds, fold_idx):
-        self.data_dir = data_dir
-        self.n_folds = n_folds
-        self.fold_idx = fold_idx
+    def __init__(self, data_dir, train_dir, val_dir, n_folds, fold_idx):
+            self.data_dir = data_dir
+            self.train_dir = train_dir
+            self.val_dir = val_dir
+            self.n_folds = n_folds
+            self.fold_idx = fold_idx
 
     def _load_npz_file(self, npz_file):
         """Load data and labels from a npz file."""
@@ -260,28 +285,54 @@ class SeqDataLoader(object):
 
     def load_train_data(self, n_files=None):
         # Remove non-mat files, and perform ascending sort
-        allfiles = os.listdir(self.data_dir)
-        npzfiles = []
-        for idx, f in enumerate(allfiles):
+        print("====== data_dir, train_dir, val_dir =======\n")
+        print(self.data_dir)
+        print(self.train_dir)
+        print(self.val_dir)
+
+        # allfiles = os.listdir(self.data_dir)
+        # all_train_files = os.listdir(self.train_dir)
+        # all_val_files = os.listdir(self.val_dir)
+        # print("====== allfiles ======\n", allfiles)
+        # print("====== all_train_files ======\n", all_train_files)
+        # print("====== all_val_files ======\n", all_val_files)
+
+        npzfiles = [f for f in os.listdir(self.train_dir) if f.endswith('.npz')]
+        print("====== npzfiles =======\n", npzfiles)
+        npz_files = []
+        for idx, f in enumerate(npzfiles):
             if ".npz" in f:
-                npzfiles.append(os.path.join(self.data_dir, f))
-        npzfiles.sort()
+                npz_files.append(os.path.join(self.train_dir, f))
+        # Sắp xếp danh sách tệp npz
+        npz_files.sort()
 
+        print("====== npz_files =======\n", npz_files)
+
+        # Nếu chỉ định n_files, thì chỉ lấy n_files tệp npz
         if n_files is not None:
-            npzfiles = npzfiles[:n_files]
+            npz_files = npz_files[:n_files]
 
-        subject_files = []
-        for idx, f in enumerate(allfiles):
-            if self.fold_idx < 10:
-                pattern = re.compile("[a-zA-Z0-9]*0{}[1-9]E0\.npz$".format(self.fold_idx))
-            else:
-                pattern = re.compile("[a-zA-Z0-9]*{}[1-9]E0\.npz$".format(self.fold_idx))
-            if pattern.match(f):
-                subject_files.append(os.path.join(self.data_dir, f))
+        print("npz_files\n", npz_files)
 
-        train_files = list(set(npzfiles) - set(subject_files))
-        train_files.sort()
+        # Tạo danh sách các tệp npz trong thư mục validation
+        val_files = [f for f in os.listdir(self.val_dir) if f.endswith('.npz')]
+        print("val_files\n", val_files)
+
+        if self.fold_idx < 10:
+            pattern1 = re.compile("[a-zA-Z0-9]*0{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+            pattern2 = re.compile("[a-zA-Z0-9]*{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+        else:
+            pattern1 = re.compile("[a-zA-Z0-9]*{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+            pattern2 = re.compile("[a-zA-Z0-9]*{}[1-9][EJ]0\.npz$".format(self.fold_idx))
+
+        subject_files = [os.path.join(self.val_dir, f) for f in val_files if pattern1.match(f) or pattern2.match(f)]
         subject_files.sort()
+
+        print("subject_files\n", subject_files)
+
+        train_files = list(set(npz_files) - set(subject_files))
+        train_files.sort()
+
 
         # Load training and validation sets
         print("\n========== [Fold-{}] ==========\n".format(self.fold_idx))

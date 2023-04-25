@@ -65,7 +65,7 @@ class DeepFeatureNet(object):
             # self.monitor_vars.append(("{}_after_bn".format(name), output))
 
             # output = leaky_relu(name="leaky_relu", input_var=output)
-            output = tf.nn.relu(output, name="relu")
+            output = tf.nn.PReLU(output)
         self.activations.append((name, output))
         self.layer_idx += 1
         return output
@@ -289,7 +289,7 @@ class DeepSleepNet(DeepFeatureNet):
             output_tmp = fc(name="fc", input_var=network, n_hiddens=1024, bias=None, wd=0)
             output_tmp = batch_norm_new(name="bn", input_var=output_tmp, is_train=self.is_train)
             # output_tmp = leaky_relu(name="leaky_relu", input_var=output_tmp)
-            output_tmp = tf.nn.relu(output_tmp, name="relu")
+            output = tf.nn.PReLU(output)
         self.activations.append((name, output_tmp))
         self.layer_idx += 1
         output_conns.append(output_tmp)

@@ -89,9 +89,9 @@ class DeepFeatureNet(object):
         if self.use_dropout:
             name = "l{}_dropout".format(self.layer_idx)
             if self.is_train:
-                network = tf.nn.dropout(network, rate=1, name=name)
+                network = tf.nn.dropout(network, rate=0.5, name=name)
             else:
-                network = tf.nn.dropout(network, rate=1, name=name)
+                network = tf.nn.dropout(network, rate=0.99, name=name)
             self.activations.append((name, network))
         self.layer_idx += 1
 
@@ -132,7 +132,7 @@ class DeepFeatureNet(object):
             if self.is_train:
                 network = tf.nn.dropout(network, rate=0.5, name=name)
             else:
-                network = tf.nn.dropout(network, rate=1.0, name=name)
+                network = tf.nn.dropout(network, rate=0.99, name=name)
             self.activations.append((name, network))
         self.layer_idx += 1
 
@@ -169,7 +169,7 @@ class DeepFeatureNet(object):
             if self.is_train:
                 network = tf.nn.dropout(network, rate=0.5, name=name)
             else:
-                network = tf.nn.dropout(network, rate=1.0, name=name)
+                network = tf.nn.dropout(network, rate=0.99, name=name)
             self.activations.append((name, network))
         self.layer_idx += 1
 
@@ -273,8 +273,8 @@ class DeepSleepNet(DeepFeatureNet):
             name=name + "_targets"
         )
 
-   def build_model(self, input_var):
-    # Create a network with superclass method
+    def build_model(self, input_var):
+        # Create a network with superclass method
         network = super(self.__class__, self).build_model(
             input_var=self.input_var
         )

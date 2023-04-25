@@ -64,8 +64,7 @@ class DeepFeatureNet(object):
             # # MONITORING
             # self.monitor_vars.append(("{}_after_bn".format(name), output))
 
-            # output = leaky_relu(name="leaky_relu", input_var=output)
-            output = tf.nn.PReLU(output)
+            output = tf.keras.layers.PReLU(name="prelu")(output)
         self.activations.append((name, output))
         self.layer_idx += 1
         return output
@@ -274,8 +273,8 @@ class DeepSleepNet(DeepFeatureNet):
             name=name + "_targets"
         )
 
-    def build_model(self, input_var):
-        # Create a network with superclass method
+   def build_model(self, input_var):
+    # Create a network with superclass method
         network = super(self.__class__, self).build_model(
             input_var=self.input_var
         )
@@ -288,12 +287,10 @@ class DeepSleepNet(DeepFeatureNet):
         with tf.compat.v1.variable_scope(name) as scope:
             output_tmp = fc(name="fc", input_var=network, n_hiddens=1024, bias=None, wd=0)
             output_tmp = batch_norm_new(name="bn", input_var=output_tmp, is_train=self.is_train)
-            # output_tmp = leaky_relu(name="leaky_relu", input_var=output_tmp)
-            output = tf.nn.PReLU(output)
+            output = tf.keras.layers.PReLU(name="prelu")(output_tmp)
         self.activations.append((name, output_tmp))
         self.layer_idx += 1
         output_conns.append(output_tmp)
-
         ######################################################################
 
         # Reshape the input from (batch_size * seq_length, input_dim) to
